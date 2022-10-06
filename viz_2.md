@@ -199,3 +199,190 @@ weather_df %>%
     ## Warning: Removed 15 rows containing missing values (geom_point).
 
 ![](viz_2_files/figure-gfm/unnamed-chunk-6-2.png)<!-- -->
+
+## Themes
+
+Shift the legend
+
+``` r
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax, color = name)) + 
+  geom_point(alpha = 0.5) + 
+  labs(
+    title = "Temperature plot", 
+    x = "Minimum daily temperature (C)", 
+    y = "Maximum daily temperature (C)", 
+    caption = "Data from rnoaa package; temperatures in 2017"
+  ) + 
+  viridis::scale_color_viridis(
+    name = "Location",
+    discrete = TRUE) + 
+  theme(legend.position = "bottom")
+```
+
+    ## Warning: Removed 15 rows containing missing values (geom_point).
+
+![](viz_2_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+Change the overall theme
+
+``` r
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax, color = name)) + 
+  geom_point(alpha = 0.5) + 
+  labs(
+    title = "Temperature plot", 
+    x = "Minimum daily temperature (C)", 
+    y = "Maximum daily temperature (C)", 
+    caption = "Data from rnoaa package; temperatures in 2017"
+  ) + 
+  viridis::scale_color_viridis(
+    name = "Location",
+    discrete = TRUE) + 
+  theme_minimal()
+```
+
+    ## Warning: Removed 15 rows containing missing values (geom_point).
+
+![](viz_2_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+``` r
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax, color = name)) + 
+  geom_point(alpha = 0.5) + 
+  labs(
+    title = "Temperature plot", 
+    x = "Minimum daily temperature (C)", 
+    y = "Maximum daily temperature (C)", 
+    caption = "Data from rnoaa package; temperatures in 2017"
+  ) + 
+  viridis::scale_color_viridis(
+    name = "Location",
+    discrete = TRUE) + 
+  ggthemes::theme_fivethirtyeight()
+```
+
+    ## Warning: Removed 15 rows containing missing values (geom_point).
+
+![](viz_2_files/figure-gfm/unnamed-chunk-8-2.png)<!-- -->
+
+## Setting options
+
+``` r
+library(tidyverse)
+
+knitr::opts_chunk$set(
+  fig.width = 6, 
+  fig.asp = .6, 
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position="bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis", 
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_color_discrete <- scale_color_viridis_d
+scale_fill_discrete <- scale_fill_viridis_d
+```
+
+# Data args in `geom`
+
+``` r
+central_park <- 
+  weather_df %>% 
+  filter(name == "CentralPark_NY")
+
+waikiki <- 
+  weather_df %>% 
+  filter(name == "Waikiki_HA")
+
+ggplot(data = waikiki, aes(x = date, y = tmax, color = name)) + 
+  geom_point() + 
+  geom_line(data = central_park)
+```
+
+    ## Warning: Removed 3 rows containing missing values (geom_point).
+
+![](viz_2_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+## `patchwork`
+
+remember faceting?
+
+``` r
+weather_df %>% 
+  ggplot(aes(x = tmin, fill = name)) + 
+  geom_density(alpha = 0.5) + 
+  facet_grid(. ~ name)
+```
+
+    ## Warning: Removed 15 rows containing non-finite values (stat_density).
+
+![](viz_2_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+
+what happens when you want multipanel plots but can’t facet..?
+
+``` r
+tmax_tmin_p <- 
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax, color = name)) + 
+  geom_point(alpha = 0.5) + 
+  theme(legend.position = "none")
+
+prcp_dens_p <- 
+  weather_df %>% 
+  filter(prcp > 0) %>%
+  ggplot(aes(x = prcp, fill = name)) + 
+  geom_density(alpha = 0.5)
+
+tmax_dates_p <- 
+  weather_df %>% 
+  ggplot(aes(x = date, y = tmax, color = name)) + 
+  geom_point() + 
+  geom_smooth(se = FALSE) + 
+  theme(legend.position = "none")
+
+tmax_tmin_p + prcp_dens_p 
+```
+
+    ## Warning: Removed 15 rows containing missing values (geom_point).
+
+![](viz_2_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+
+## Data manipulation
+
+Control your factors
+
+``` r
+weather_df %>%
+  mutate(name = factor(name), 
+         name = forcats::fct_relevel(name, c("Waikiki_HA"))) %>%
+  ggplot(aes(x = name, y = tmax, fill = name)) + 
+  geom_violin(alpha = 0.5)
+```
+
+    ## Warning: Removed 3 rows containing non-finite values (stat_ydensity).
+
+![](viz_2_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
+What if I wanted densities for tmin and tmax simultaneously? - Look at
+it as data tidyness issue instead of trying to do it all in ggplot
+
+``` r
+weather_df %>% 
+  pivot_longer(
+    tmax:tmin, 
+    names_to = "observation", 
+    values_to = "temperatures"
+  ) %>%
+  ggplot(aes(x = temperatures, fill = observation)) + 
+  geom_density(alpha = 0.5) +
+  facet_grid(. ~ name)
+```
+
+    ## Warning: Removed 18 rows containing non-finite values (stat_density).
+
+![](viz_2_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
