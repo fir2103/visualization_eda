@@ -1,0 +1,6 @@
+---
+title: "case_study"
+author: "Farizah Rob"
+date: "2022-10-13"
+output: html_document
+---
