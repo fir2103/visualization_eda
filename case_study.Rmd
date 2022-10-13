@@ -2,7 +2,7 @@
 title: "case_study"
 author: "Farizah Rob"
 date: "2022-10-13"
-output: github_document
+output: html_document
 ---
 
 ```{r}
@@ -164,5 +164,19 @@ nyc_airbnb %>%
   ggplot(aes(x = lat, y = long, color = price)) + geom_point(alpha = 0.5)
 
 #northern manhattan is on the right top, southern manhattan is left bottom
+```
+
+```{r}
+library(leaflet)
+pal <- colorNumeric(palette = "viridis", domain = c(0,1000))
+
+nyc_airbnb %>%
+  filter(borough == "Manhattan", 
+         price <= 1000, 
+         room_type == "Entire home/apt") %>%
+  sample_n(1000) %>%
+  leaflet() %>% 
+  addProviderTiles(providers$CartoDB.Positron) %>%
+  addCircleMarkers(~lat, ~long, radius=0.5, color = ~pal(price))
 ```
 
